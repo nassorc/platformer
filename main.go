@@ -26,12 +26,12 @@ type Game struct {
 }
 
 func NewGame() *Game {
-  assets.MustLoadAssets()
+	assets.MustLoadAssets()
 
 	g := &Game{
 		bounds: image.Rectangle{},
 		// scene:  &scenes.PlatformerScene{},
-		scene:  scenes.NewPlatformScene(),
+		scene: scenes.NewPlatformScene(),
 	}
 
 	return g
