@@ -4,21 +4,39 @@ import (
 	"image/color"
 	"sync"
 
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/solarlune/resolv"
-	"github.com/yohamta/donburi"
-	"github.com/yohamta/donburi/ecs"
 	"platformer/config"
 	"platformer/factory"
+	"platformer/features"
 	"platformer/layers"
 	dresolv "platformer/resolv"
 	"platformer/systems"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/nassorc/go-codebase/lib/math"
+	"github.com/solarlune/resolv"
+	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/ecs"
 )
 
 type PlatformerScene struct {
 	ecs  *ecs.ECS
 	once sync.Once
+  camera features.Camera
+  worldView *ebiten.Image
+}
+
+func NewPlatformScene() *PlatformerScene {
+  return &PlatformerScene{
+    camera: features.Camera{
+      Zoom: 1,
+      View: ebiten.NewImage(config.C.Width, config.C.Height),
+      Viewport: math.AABB{
+        Min: math.Vec2{X: 0, Y: 0},
+        Max: math.Vec2{X: float32(config.C.Width), Y: float32(config.C.Height)},
+      },
+    },
+  }
 }
 
 func (ps *PlatformerScene) Update() {
@@ -28,10 +46,15 @@ func (ps *PlatformerScene) Update() {
 
 func (ps *PlatformerScene) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{20, 20, 40, 255})
-	ps.ecs.Draw(screen)
+  ps.worldView.Clear()
+	ps.ecs.Draw(ps.worldView)
+  ps.camera.Draw(ps.worldView, screen)
 }
 
 func (ps *PlatformerScene) configure() {
+  // camera view
+  ps.worldView = ebiten.NewImage(config.C.Width, config.C.Height)
+
 	lecs := ecs.NewECS(donburi.NewWorld())
   animation := systems.NewAnimation()
 

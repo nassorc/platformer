@@ -15,9 +15,6 @@ import (
 	"platformer/scenes"
 )
 
-//go:embed assets/fonts/excel.ttf
-var excelFont []byte
-
 type Scene interface {
 	Update()
 	Draw(screen *ebiten.Image)
@@ -33,7 +30,8 @@ func NewGame() *Game {
 
 	g := &Game{
 		bounds: image.Rectangle{},
-		scene:  &scenes.PlatformerScene{},
+		// scene:  &scenes.PlatformerScene{},
+		scene:  scenes.NewPlatformScene(),
 	}
 
 	return g
@@ -47,10 +45,6 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Clear()
 	g.scene.Draw(screen)
-
-  opt := &ebiten.DrawImageOptions{}
-
-  screen.DrawImage(assets.DinoGreenSheet, opt)
 }
 
 func (g *Game) Layout(width, height int) (int, int) {
