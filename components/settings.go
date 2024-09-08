@@ -8,3 +8,8 @@ type SettingsData struct {
 }
 
 var Settings = donburi.NewComponentType[SettingsData]()
+
+func MustFindSettings(world donburi.World) *SettingsData {
+  entry := Settings.MustFirst(world)
+  return Settings.Get(entry)
+}

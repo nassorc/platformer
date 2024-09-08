@@ -57,11 +57,13 @@ func (ps *PlatformerScene) configure() {
 
 	lecs := ecs.NewECS(donburi.NewWorld())
   animation := systems.NewAnimation()
+  cameraFollowPlayer := features.NewCameraFollowPlayer(&ps.camera)
 
 	lecs.AddSystem(animation.UpdateAnimation)
 	lecs.AddSystem(systems.UpdateFloatingPlatform)
 	lecs.AddSystem(systems.UpdatePlayer)
 	lecs.AddSystem(systems.UpdateObjects)
+	lecs.AddSystem(cameraFollowPlayer.Update)
 	lecs.AddSystem(systems.UpdateSettings)
 
 	lecs.AddRenderer(layers.Default, systems.DrawWall)
