@@ -69,6 +69,7 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
 	sh := c.camera.Viewport.Max.Y / float32(c.camera.Zoom)
 
   // subtract player's object half size to make origin center
+  // get camer center position
 	x -= sw / 2 - 8
 	y -= sh / 2 - 10
 
@@ -81,22 +82,10 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
     trapOffset = -25
   }
 
-  // Lerp(c.camera.Position.X, x+float32(old), 0.5)
+  trapX := float32(float64(x) + float64(trapOffset))
+  cameraX := float32(Lerp(float64(c.camera.Position.X), float64(trapX), 0.05))
 
-  // follow player 
-  // c.camera.Position.X = float32(Lerp(float64(x), float64(x + float32(trapOffset)), 0.1))
-
-  // finalX := playerPos + trapoffset
-  // cameraX = Lerp(cameraX, finalX, 0.5)
-
-  // maybe twice the trapoffset
-  // newFinalX = float32(c.camera.Position.X + float32(trapOffset))
-
-  finalX := float32(obj.X + float64(trapOffset))
-  cameraX := Lerp(float64(c.camera.Position.X), float64(finalX), 0.05)
-
-  // c.camera.Position.X = x + float32(trapOffset)
-  c.camera.Position.X = float32(cameraX)
+  c.camera.Position.X = cameraX
   c.camera.Position.Y = y
 
   // bound camera
