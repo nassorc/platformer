@@ -81,20 +81,22 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
     trapOffset *= -1
   }
 
-  lerpVal := 0.08 // [0.0, 1.0]
+  lerpX := 0.08 // [0.0, 1.0]
+  lerpY := 0.08 // [0.0, 1.0]
   trapX := float32(x + trapOffset)
-  cameraX := float32(Lerp(float64(c.camera.Position.X), float64(trapX), lerpVal))
+  cameraX := float32(Lerp(float64(c.camera.Position.X), float64(trapX), lerpX))
+  cameraY := float32(Lerp(float64(c.camera.Position.Y), float64(y), lerpY))
 
   if !player.FacingRight && x < cameraX {
-    cameraX = float32(Lerp(float64(cameraX), float64(x), lerpVal))
+    cameraX = float32(Lerp(float64(cameraX), float64(x), lerpX))
   }
 
   if player.FacingRight && x > cameraX {
-    cameraX = float32(Lerp(float64(cameraX), float64(x), lerpVal))
+    cameraX = float32(Lerp(float64(cameraX), float64(x), lerpX))
   }
 
   c.camera.Position.X = cameraX
-  c.camera.Position.Y = y
+  c.camera.Position.Y = cameraY
 
   // bound camera
 	if c.camera.Position.X < 0 {
