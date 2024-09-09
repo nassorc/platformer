@@ -1,7 +1,6 @@
 package features
 
 import (
-	"fmt"
 	"image/color"
 	"math"
 	"platformer/components"
@@ -62,28 +61,37 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
   player := components.Player.Get(entry)
   obj := components.Object.Get(entry)
 
-  // make camera target player position
+  // center camera at target's x and y
   x := float32(obj.X)
   y := float32(obj.Y)
+
+  // get viewport width and height, then normalize it by the zoom factor
   sw := c.camera.Viewport.Max.X / float32(c.camera.Zoom)
 	sh := c.camera.Viewport.Max.Y / float32(c.camera.Zoom)
 
-  // subtract player's object half size to make origin center
-  // get camer center position
-	x -= sw / 2 - 8
-	y -= sh / 2 - 10
+  // subtract half width and height to get the camera position centered at the target
+	x -= sw / 2
+	y -= sh / 2
 
-  trapOffset := 0
+  trapOffset := float32(25)
+
 
   // camera trap
-  if player.FacingRight {
-    trapOffset = 25
-  } else {
-    trapOffset = -25
+  if !player.FacingRight {
+    trapOffset *= -1
   }
 
-  trapX := float32(float64(x) + float64(trapOffset))
-  cameraX := float32(Lerp(float64(c.camera.Position.X), float64(trapX), 0.05))
+  lerpVal := 0.08 // [0.0, 1.0]
+  trapX := float32(x + trapOffset)
+  cameraX := float32(Lerp(float64(c.camera.Position.X), float64(trapX), lerpVal))
+
+  if !player.FacingRight && x < cameraX {
+    cameraX = float32(Lerp(float64(cameraX), float64(x), lerpVal))
+  }
+
+  if player.FacingRight && x > cameraX {
+    cameraX = float32(Lerp(float64(cameraX), float64(x), lerpVal))
+  }
 
   c.camera.Position.X = cameraX
   c.camera.Position.Y = y
@@ -92,12 +100,15 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
 	if c.camera.Position.X < 0 {
 		c.camera.Position.X = 0
 	}
+
 	if (c.camera.Position.X + sw) > float32(config.C.Width) {
 		c.camera.Position.X = float32(config.C.Width) - sw
 	}
+
 	if c.camera.Position.Y < 0 {
 		c.camera.Position.Y = 0
 	}
+
 	if (c.camera.Position.Y + sh) > float32(config.C.Height) {
 		c.camera.Position.Y = float32(config.C.Height) - sh
 	}
@@ -106,6 +117,7 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
 		c.Zoom += 1
 		c.camera.Zoom = math.Pow(1.01, c.Zoom)
 	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
 		c.Zoom -= 1
 		c.camera.Zoom = math.Pow(1.01, c.Zoom)
@@ -124,8 +136,7 @@ func (c *DebugCamera) Draw(ecs *ecs.ECS, screen *ebiten.Image) {
   settings := components.MustFindSettings(ecs.World)
   if settings.Debug {
     center := c.camera.Viewport.Center()
-    drawColor := color.RGBA{255, 20, 20, 255}
-    fmt.Println("drawing camera @", center.X, center.Y)
-    vector.DrawFilledCircle(screen, center.X, center.Y, 4, drawColor, false)
+    drawColor := color.RGBA{20, 255, 20, 255}
+    vector.DrawFilledCircle(c.camera.View, center.X, center.Y, 4, drawColor, false)
   }
 }
