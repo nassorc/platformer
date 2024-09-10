@@ -113,12 +113,12 @@ func UpdatePlayer(ecs *ecs.ECS) {
 				player.SpeedY = -jumpSpd
 			} else if player.WallSliding != nil {
 				// WALLJUMPING
-				player.SpeedY = -jumpSpd
+				player.SpeedY = -(jumpSpd-1)
 
 				if player.WallSliding.X > playerObject.X {
-					player.SpeedX = -6
+					player.SpeedX = -6.5
 				} else {
-					player.SpeedX = 6
+					player.SpeedX = 6.5
 				}
 
 				player.WallSliding = nil
