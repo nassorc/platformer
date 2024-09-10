@@ -16,10 +16,10 @@ type PlayerData struct {
 
 var Player = donburi.NewComponentType[PlayerData]()
 
-func MustFindPlayer(world donburi.World) *donburi.Entry {
+func MustFindPlayer(world donburi.World) *PlayerData {
   entry, ok := Player.First(world)
   if !ok {
     panic("no player found")
   }
-  return entry
+  return Player.Get(entry)
 }
