@@ -8,10 +8,11 @@ import (
 type PlayerData struct {
 	SpeedX         float64
 	SpeedY         float64
+  JumpBuffer     int
 	OnGround       *resolv.Object
 	WallSliding    *resolv.Object
-	FacingRight    bool
 	IgnorePlatform *resolv.Object
+	FacingRight    bool
 }
 
 var Player = donburi.NewComponentType[PlayerData]()

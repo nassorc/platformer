@@ -23,17 +23,33 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	playerObject := dresolv.GetObject(playerEntry)
   animation := components.Animation.Get(playerEntry)
 
-	friction := 0.5 // smaller values lower the friction, while higher values increase friction
+	friction := 0.5  
 	accel := 0.5 + friction
-	maxSpeed := 4.0
-	jumpSpd := 10.0
-	gravity := 0.70
+	maxXSpeed := 2.5
+	maxYSpeed := 8.0
+	jumpSpd := 8.0
+	gravity := 0.40
+  grounded := playerObject.Check(0, 1, "solid", "platform", "ramp") != nil
+
+  // control jump height
+  if inpututil.IsKeyJustReleased(ebiten.KeyX) && !grounded && player.SpeedY < -2 {
+    gravity *= 12
+  }
+
+  player.JumpBuffer -= 1
+
+  // clamp x speed
+	if player.SpeedY > maxYSpeed {
+		player.SpeedY = maxYSpeed
+	} else if player.SpeedY < -maxYSpeed {
+		player.SpeedY = -maxYSpeed
+	}
 
 	player.SpeedY += gravity
 
   // if wallSliding and falling
 	if player.WallSliding != nil && player.SpeedY > 1 {
-		player.SpeedY = 2
+		player.SpeedY = 1.6
     animation.MustChangeState(factory.WallClimb)
 	}
 
@@ -67,15 +83,17 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.SpeedX = 0
 	}
 
-  // clamp speed
-	if player.SpeedX > maxSpeed {
-		player.SpeedX = maxSpeed
-	} else if player.SpeedX < -maxSpeed {
-		player.SpeedX = -maxSpeed
+  // clamp x speed
+	if player.SpeedX > maxXSpeed {
+		player.SpeedX = maxXSpeed
+	} else if player.SpeedX < -maxXSpeed {
+		player.SpeedX = -maxXSpeed
 	}
 
-	// Check for jumping.
-	if inpututil.IsKeyJustPressed(ebiten.KeyX) || ebiten.IsGamepadButtonPressed(0, 0) || ebiten.IsGamepadButtonPressed(1, 0) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyX) || ebiten.IsGamepadButtonPressed(0, 0) || ebiten.IsGamepadButtonPressed(1, 0) || (grounded && player.JumpBuffer > 0) {
+
+    // set jump buffer
+    player.JumpBuffer = 6
 
 		// .......................................................................
 		// fall through platform if keydown while jumping and on ground object is a platform.
@@ -98,9 +116,9 @@ func UpdatePlayer(ecs *ecs.ECS) {
 				player.SpeedY = -jumpSpd
 
 				if player.WallSliding.X > playerObject.X {
-					player.SpeedX = -4
+					player.SpeedX = -6
 				} else {
-					player.SpeedX = 4
+					player.SpeedX = 6
 				}
 
 				player.WallSliding = nil
