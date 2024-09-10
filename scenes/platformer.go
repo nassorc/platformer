@@ -58,12 +58,13 @@ func (ps *PlatformerScene) configure() {
 	lecs := ecs.NewECS(donburi.NewWorld())
   animation := systems.NewAnimation()
   cameraFollowPlayer := features.NewCameraFollowPlayer(&ps.camera)
+  debugCamera := features.NewDebugCamera(&ps.camera)
 
-	lecs.AddSystem(animation.UpdateAnimation)
 	lecs.AddSystem(systems.UpdateFloatingPlatform)
 	lecs.AddSystem(systems.UpdatePlayer)
 	lecs.AddSystem(systems.UpdateObjects)
 	lecs.AddSystem(cameraFollowPlayer.Update)
+	lecs.AddSystem(animation.UpdateAnimation)
 	lecs.AddSystem(systems.UpdateSettings)
 
 	lecs.AddRenderer(layers.Default, systems.DrawWall)
@@ -74,6 +75,7 @@ func (ps *PlatformerScene) configure() {
 	lecs.AddRenderer(layers.Default, systems.DrawAnimation)
 	lecs.AddRenderer(layers.Default, systems.DrawDebug)
 	lecs.AddRenderer(layers.Default, systems.DrawHelp)
+	lecs.AddRenderer(layers.Top, debugCamera.Draw)
   lecs.AddRenderer(layers.Bottom, func (ecs *ecs.ECS, screen *ebiten.Image) {
     vector.StrokeRect(screen, 0, 0, 32, 32, 2, color.White, false)
   })

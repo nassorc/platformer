@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"platformer/components"
+	"platformer/factory"
 	dresolv "platformer/resolv"
 	"platformer/tags"
 
@@ -20,16 +21,20 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	playerEntry, _ := components.Player.First(ecs.World)
 	player := components.Player.Get(playerEntry)
 	playerObject := dresolv.GetObject(playerEntry)
+  animation := components.Animation.Get(playerEntry)
 
-	friction := 0.5
+	friction := 0.5 // smaller values lower the friction, while higher values increase friction
 	accel := 0.5 + friction
 	maxSpeed := 4.0
 	jumpSpd := 10.0
 	gravity := 0.70
 
 	player.SpeedY += gravity
+
+  // if wallSliding and falling
 	if player.WallSliding != nil && player.SpeedY > 1 {
-		player.SpeedY = 4
+		player.SpeedY = 2
+    animation.MustChangeState(factory.WallClimb)
 	}
 
 	// Horizontal movement is only possible when not wallsliding.
@@ -43,9 +48,17 @@ func UpdatePlayer(ecs *ecs.ECS) {
 			player.SpeedX -= accel
 			player.FacingRight = false
 		}
+
+    if player.SpeedX != 0 {
+      animation.MustChangeState(factory.Run)
+    } else {
+      animation.MustChangeState(factory.Idle)
+    }
 	}
 
 	// Apply friction and horizontal speed limiting.
+  // subtract friction until speed is less than friction 
+  // if speed is less than friction, set it to 0. Stopping movement
 	if player.SpeedX > friction {
 		player.SpeedX -= friction
 	} else if player.SpeedX < -friction {
@@ -54,6 +67,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.SpeedX = 0
 	}
 
+  // clamp speed
 	if player.SpeedX > maxSpeed {
 		player.SpeedX = maxSpeed
 	} else if player.SpeedX < -maxSpeed {
@@ -92,9 +106,11 @@ func UpdatePlayer(ecs *ecs.ECS) {
 				player.WallSliding = nil
 
 			}
-
+      // change animation if jumping
+      if player.SpeedY < 0 {
+        animation.MustChangeState(factory.Jump)
+      }
 		}
-
 	}
 
 	// We handle horizontal movement separately from vertical movement. This is, conceptually, decomposing movement into two phases / axes.

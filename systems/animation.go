@@ -23,7 +23,7 @@ func NewAnimation() Animation {
 func (sys *Animation) UpdateAnimation(ecs *ecs.ECS) {
   components.Animation.Each(ecs.World, func(e *donburi.Entry) {
     anim := components.Animation.Get(e)
-    ref := anim.Data
+    ref := anim.StateMap[anim.CurrentState]
 		now := float32(sys.tick) / 60 * 1000
     lastUpdate := anim.LastUpdateTime
     curFrame := anim.CurrentFrame
@@ -44,17 +44,35 @@ func DrawAnimation(ecs *ecs.ECS, screen *ebiten.Image) {
     anim := components.Animation.Get(e)
     obj := components.Object.Get(e)
 
-    
-		frame := anim.Data.Sheet[anim.CurrentFrame]
-    texture := anim.Data.Texture
+		frame := anim.StateMap[anim.CurrentState].Sheet[anim.CurrentFrame]
+    texture := anim.StateMap[anim.CurrentState].Texture
+    offset := anim.Offset
 
     // the Animation type should handle this
 		ops := &ebiten.DrawImageOptions{}
 		// ops.GeoM.Translate(float64(obj.X)-float64(anim.Data.TileWidth/2), float64(obj.Y)-float64(anim.Data.TileHeight/2))
-		ops.GeoM.Translate(float64(obj.X), float64(obj.Y))
 
-    tw := anim.Data.TileWidth
-    th := anim.Data.TileWidth
+    // obj.
+
+    // Will only work with the player entity
+    player := components.MustFindPlayer(ecs.World)
+    scaleX := 1
+
+    if !player.FacingRight {
+      scaleX = -1
+    }
+
+
+    ops.GeoM.Scale(float64(scaleX), 1)
+
+    if scaleX < 0 {
+      ops.GeoM.Translate(float64(24), 0)
+    }
+
+		ops.GeoM.Translate(float64(obj.X)+float64(offset.X), float64(obj.Y)+float64(offset.Y))
+
+    tw := anim.StateMap[anim.CurrentState].TileWidth
+    th := anim.StateMap[anim.CurrentState].TileWidth
 		x := frame.Cell % (texture.Bounds().Dx() / tw)
 		y := frame.Cell / (texture.Bounds().Dx() / tw)
 

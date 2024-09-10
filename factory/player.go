@@ -6,9 +6,19 @@ import (
 	"platformer/components"
 	dresolv "platformer/resolv"
 
+	"github.com/nassorc/go-codebase/lib/math"
 	"github.com/solarlune/resolv"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
+)
+
+type AnimationState = string
+
+const (
+  Idle AnimationState = "Idle"
+  Run AnimationState = "Run"
+  Jump AnimationState = "Jump"
+  WallClimb AnimationState = "WallClimb"
 )
 
 // handles the details
@@ -17,19 +27,23 @@ func CreatePlayer(ecs *ecs.ECS) *donburi.Entry {
 
   // add object
   // width and height probably match the tile width and height of the animation
-	obj := resolv.NewObject(32, 128, 16, 20)
+	obj := resolv.NewObject(32, 128, 8, 16)
 	dresolv.SetObject(player, obj)
 	components.Player.SetValue(player, components.PlayerData{
 		FacingRight: true,
 	})
 
-	obj.SetShape(resolv.NewRectangle(0, 0, 24, 24))
+	obj.SetShape(resolv.NewRectangle(0, 0, 8, 16))
 
-  // add animation
   components.Animation.SetValue(player, components.AnimationData{
-    CurrentFrame: 0,
-    LastUpdateTime: 0,
-    Data: &assets.DinoGreenIdle,
+    Offset: math.Vec2{X: -8, Y: -5},
+    CurrentState: Idle, // initial state 
+    StateMap: map[string]*assets.Animation{
+      Idle: &assets.DinoGreenIdle,
+      Run: &assets.DinoGreenRun,
+      Jump: &assets.DinoGreenJumpAsc,
+      WallClimb: &assets.DinoGreenWallClimb,
+    },
   })
 
 	return player

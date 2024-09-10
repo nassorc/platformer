@@ -38,6 +38,21 @@ type Animation struct {
 	TileHeight  int
 }
 
+// Type
+type Class int
+const (
+  Player = iota
+  Enemy
+)
+
+// State
+type State int
+const (
+  Idle = iota
+  Walking
+  Running
+)
+
 var (
   //go:embed dino/sheets/DinoSprites-vita.png
   DinoGreenData []byte
@@ -79,6 +94,44 @@ var (
       Frame{ 23, 120 },
     },
   }
+
+  DinoGreenWallClimb = Animation {
+    Texture: nil,
+    TileWidth: 24,
+    TileHeight: 24,
+    TotalFrames: 1,
+    Sheet: Sheet{
+      Frame{ 12, 1 },
+    },
+  }
+
+  DinoGreenJumpAsc = Animation {
+    Texture: nil,
+    TileWidth: 24,
+    TileHeight: 24,
+    TotalFrames: 1,
+    Sheet: Sheet{
+      Frame{ 12, 1 },
+    },
+  }
+
+  DinoGreenJumpDesc = Animation {
+    Texture: nil,
+    TileWidth: 24,
+    TileHeight: 24,
+    TotalFrames: 1,
+    Sheet: Sheet{
+      Frame{ 17, 1 },
+    },
+  }
+
+  animations = map[Class]map[State] *Animation {
+    Player: {
+      Idle: &DinoGreenIdle,
+      Running: &DinoGreenRun,
+    },
+  }
+
 )
 
 func MustLoadAssets() {
@@ -90,6 +143,9 @@ func MustLoadAssets() {
   DinoGreenSheet = ebiten.NewImageFromImage(img)
   DinoGreenIdle.Texture = DinoGreenSheet
   DinoGreenRun.Texture = DinoGreenSheet
+  DinoGreenWallClimb.Texture = DinoGreenSheet
+  DinoGreenJumpAsc.Texture = DinoGreenSheet
+  DinoGreenJumpDesc.Texture = DinoGreenSheet
 
 	LoadFont(Excel, excelFont)
 } 
