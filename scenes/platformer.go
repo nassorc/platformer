@@ -4,6 +4,7 @@ import (
 	"image/color"
 	"sync"
 
+	"platformer/assets"
 	"platformer/config"
 	"platformer/factory"
 	"platformer/features"
@@ -67,15 +68,17 @@ func (ps *PlatformerScene) configure() {
 	lecs.AddSystem(animation.UpdateAnimation)
 	lecs.AddSystem(systems.UpdateSettings)
 
-	lecs.AddRenderer(layers.Default, systems.DrawWall)
+	lecs.AddRenderer(layers.Default, systems.DrawLevel)
+	// lecs.AddRenderer(layers.Default, systems.DrawWall)
 	lecs.AddRenderer(layers.Default, systems.DrawPlatform)
 	lecs.AddRenderer(layers.Default, systems.DrawRamp)
 	lecs.AddRenderer(layers.Default, systems.DrawFloatingPlatform)
-	lecs.AddRenderer(layers.Default, systems.DrawPlayer)
+	// lecs.AddRenderer(layers.Default, systems.DrawPlayer)
 	lecs.AddRenderer(layers.Default, systems.DrawAnimation)
 	lecs.AddRenderer(layers.Default, systems.DrawDebug)
 	lecs.AddRenderer(layers.Default, systems.DrawHelp)
 	lecs.AddRenderer(layers.Top, debugCamera.Draw)
+	// lecs.AddRenderer(layers.Top, systems.DrawTiles)
   lecs.AddRenderer(layers.Bottom, func (ecs *ecs.ECS, screen *ebiten.Image) {
     vector.StrokeRect(screen, 0, 0, 32, 32, 2, color.White, false)
   })
@@ -83,25 +86,29 @@ func (ps *PlatformerScene) configure() {
 
 	ps.ecs = lecs
 
-	gw, gh := float64(config.C.Width), float64(config.C.Height)
+	_, gh := float64(config.C.Width), float64(config.C.Height)
 
 	// Define the world's Space. Here, a Space is essentially a grid (the game's width and height, or 640x360), made up of 16x16 cells. Each cell can have 0 or more Objects within it,
 	// and collisions can be found by checking the Space to see if the Cells at specific positions contain (or would contain) Objects. This is a broad, simplified approach to collision
 	// detection.
 	space := factory.CreateSpace(ps.ecs)
 
+  for _, obj := range assets.PlatformLevel.Objects {
+		dresolv.Add(space, factory.CreateWall(ps.ecs, resolv.NewObject(obj.X, obj.Y, obj.Width, obj.Height, "solid")))
+  }
+
 	dresolv.Add(space,
 		// Construct the solid level geometry. Note that the simple approach of checking cells in a Space for collision works simply when the geometry is aligned with the cells,
 		// as it all is in this platformer example.
-		factory.CreateWall(ps.ecs, resolv.NewObject(0, 0, 16, gh, "solid")),
-		factory.CreateWall(ps.ecs, resolv.NewObject(gw-16, 0, 16, gh, "solid")),
-		factory.CreateWall(ps.ecs, resolv.NewObject(0, 0, gw, 16, "solid")),
-		factory.CreateWall(ps.ecs, resolv.NewObject(0, gh-24, gw, 32, "solid")),
-		factory.CreateWall(ps.ecs, resolv.NewObject(160, gh-56, 160, 32, "solid")),
-		factory.CreateWall(ps.ecs, resolv.NewObject(320, 64, 32, 160, "solid")),
-		factory.CreateWall(ps.ecs, resolv.NewObject(64, 128, 16, 160, "solid")),
-		factory.CreateWall(ps.ecs, resolv.NewObject(gw-128, 64, 128, 16, "solid")),
-		factory.CreateWall(ps.ecs, resolv.NewObject(gw-128, gh-88, 128, 16, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(0, 0, 16, gh, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(gw-16, 0, 16, gh, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(0, 0, gw, 16, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(0, gh-24, gw, 32, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(160, gh-56, 160, 32, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(320, 64, 32, 160, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(64, 128, 16, 160, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(gw-128, 64, 128, 16, "solid")),
+		// factory.CreateWall(ps.ecs, resolv.NewObject(gw-128, gh-88, 128, 16, "solid")),
 		// Create the Player. NewPlayer adds it to the world's Space.
 		factory.CreatePlayer(ps.ecs),
 		// Non-moving floating Platforms.

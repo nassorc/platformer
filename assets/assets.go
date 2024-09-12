@@ -2,68 +2,42 @@ package assets
 
 import (
 	"bytes"
-	_ "embed"
+	"embed"
 	"fmt"
 	"image"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/lafriks/go-tiled"
+	"github.com/lafriks/go-tiled/render"
 
 	"github.com/golang/freetype/truetype"
 	"golang.org/x/image/font"
 )
 
-type FontName string
-
 const (
   Excel FontName = "excel"
-)
 
-func (f FontName) Get() font.Face {
-	return getFont(f)
-}
-
-func NewFrame(Cell, Duration int) Frame {
-	return Frame{Cell, Duration}
-}
-
-type Frame struct{ Cell, Duration int }
-
-type Sheet []Frame
-
-type Animation struct {
-	Sheet       Sheet
-	Texture     *ebiten.Image
-	TotalFrames int
-	TileWidth   int
-	TileHeight  int
-}
-
-// Type
-type Class int
-const (
-  Player = iota
-  Enemy
-)
-
-// State
-type State int
-const (
+  // Animation State
   Idle = iota
   Walking
   Running
 )
 
 var (
+  PlatformLevel Level
+  Background *ebiten.Image
+  //go:embed tiles/*
+  LevelFS embed.FS
+  //go:embed tiles/sprites/world_tileset.png
+  TileSheetData []byte
   //go:embed dino/sheets/DinoSprites-vita.png
   DinoGreenData []byte
-
   //go:embed fonts/excel.ttf
   excelFont []byte
-)
 
-var (
 	fonts = map[FontName]font.Face{}
-
+  TileSheet *ebiten.Image
   DinoGreenSheet *ebiten.Image
 
   DinoGreenIdle = Animation {
@@ -124,18 +98,62 @@ var (
       Frame{ 17, 1 },
     },
   }
-
-  animations = map[Class]map[State] *Animation {
-    Player: {
-      Idle: &DinoGreenIdle,
-      Running: &DinoGreenRun,
-    },
-  }
-
 )
 
+type Level struct {
+  Background *ebiten.Image
+  Objects []Object
+}
+
+type Object struct {
+  ID uint32
+  Class string
+  X, Y, Width, Height float64
+}
+
+type FontName string
+
+func (f FontName) Get() font.Face {
+	return getFont(f)
+}
+
+func NewFrame(Cell, Duration int) Frame {
+	return Frame{Cell, Duration}
+}
+
+type Frame struct{ 
+  Cell int 
+  Duration int
+}
+
+type Sheet []Frame
+
+type Animation struct {
+	Sheet       Sheet
+	Texture     *ebiten.Image
+	TotalFrames int
+	TileWidth   int
+	TileHeight  int
+}
+
+// Type
+type Class int
+
+// State
+type State int
+
 func MustLoadAssets() {
-  img, _, err := image.Decode(bytes.NewReader(DinoGreenData))
+  MustLoadLevel()
+  img, _, err := image.Decode(bytes.NewReader(TileSheetData))
+
+  if err != nil {
+    panic(err)
+  }
+
+  TileSheet = ebiten.NewImageFromImage(img)
+
+  img, _, err = image.Decode(bytes.NewReader(DinoGreenData))
+
   if err != nil {
     panic(err)
   }
@@ -150,6 +168,40 @@ func MustLoadAssets() {
 	LoadFont(Excel, excelFont)
 } 
 
+func MustLoadLevel() {
+  gameMap, err := tiled.LoadFile("./assets/levels/platformer.tmx")
+  if err != nil {
+    fmt.Printf("error parsing map: %s", err.Error())
+    os.Exit(2)
+  }
+  for _, obj := range gameMap.ObjectGroups[0].Objects {
+    fmt.Println(obj)
+  }
+
+  renderer, err := render.NewRenderer(gameMap)
+  if err != nil {
+    fmt.Printf("map unsupported for rendering: %s", err.Error())
+    os.Exit(2)
+  }
+
+  // level.Background
+  if err = renderer.RenderVisibleLayers(); err != nil {
+    fmt.Printf("layer unsupported for rendering: %s", err.Error())
+    os.Exit(2)
+  }
+  PlatformLevel.Background = ebiten.NewImageFromImage(renderer.Result)
+
+  for _, obj := range gameMap.ObjectGroups[0].Objects {
+    PlatformLevel.Objects = append(PlatformLevel.Objects, Object{
+      ID: obj.ID,
+      Class: obj.Class,
+      X: obj.X,
+      Y: obj.Y,
+      Width: obj.Width,
+      Height: obj.Height,
+    })
+  }
+}
 
 func LoadFont(name FontName, ttf []byte) {
 	fontData, _ := truetype.Parse(ttf)

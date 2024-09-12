@@ -8,9 +8,11 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"platformer/assets"
 	"platformer/config"
+
+	"github.com/hajimehoshi/ebiten/v2"
+
 	// "platformer/fonts"
 	"platformer/scenes"
 )
@@ -30,7 +32,6 @@ func NewGame() *Game {
 
 	g := &Game{
 		bounds: image.Rectangle{},
-		// scene:  &scenes.PlatformerScene{},
 		scene: scenes.NewPlatformScene(),
 	}
 
@@ -45,6 +46,8 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Clear()
 	g.scene.Draw(screen)
+  // opt := &ebiten.DrawImageOptions{}
+  // screen.DrawImage(assets.PlatformLevel.Background, opt)
 }
 
 func (g *Game) Layout(width, height int) (int, int) {

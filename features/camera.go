@@ -61,6 +61,10 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
   player := components.Player.Get(entry)
   obj := components.Object.Get(entry)
 
+  min, max := obj.Shape.Bounds()
+  ohw := float32(max.X() - min.X()) / 2
+  ohh := float32(max.Y() - min.Y()) / 2
+
   // center camera at target's x and y
   x := float32(obj.X)
   y := float32(obj.Y)
@@ -70,11 +74,10 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
 	sh := c.camera.Viewport.Max.Y / float32(c.camera.Zoom)
 
   // subtract half width and height to get the camera position centered at the target
-	x -= sw / 2
-	y -= sh / 2
+	x -= sw / 2 - ohw
+	y -= sh / 2 - ohh
 
-  trapOffset := float32(25)
-
+  trapOffset := float32(16)
 
   // camera trap
   if !player.FacingRight {
