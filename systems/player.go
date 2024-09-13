@@ -23,6 +23,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	player := components.Player.Get(playerEntry)
 	playerObject := dresolv.GetObject(playerEntry)
   animation := components.Animation.Get(playerEntry)
+  grounded := playerObject.Check(0, 1, "solid", "platform", "ramp") != nil
 
 	friction := 0.5  
 	accel := 0.5 + friction
@@ -30,19 +31,23 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	maxYSpeed := 8.0
 	jumpSpd := 8.0
 	gravity := 0.40
-  grounded := playerObject.Check(0, 1, "solid", "platform", "ramp") != nil
+
+  player.JumpBuffer -= 1
 
   // control jump height
   if inpututil.IsKeyJustReleased(ebiten.KeyX) && !grounded && player.SpeedY < -2 {
     gravity *= 12
   }
 
+  // player falls out of map, respawn 
   if playerObject.Y > float64(config.C.Height) {
     playerObject.X = config.C.SpawnX
     playerObject.Y = config.C.SpawnY
+    player.SpeedY = 0
+    player.SpeedX = 0
   }
 
-  player.JumpBuffer -= 1
+	player.SpeedY += gravity
 
   // clamp y speed
 	if player.SpeedY > maxYSpeed {
@@ -51,11 +56,9 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.SpeedY = -maxYSpeed
 	}
 
-	player.SpeedY += gravity
-
   // if wallSliding and falling
 	if player.WallSliding != nil && player.SpeedY > 1 {
-		player.SpeedY = 1.6
+		player.SpeedY = 1.6 
     animation.MustChangeState(factory.WallClimb)
 	}
 
@@ -101,10 +104,6 @@ func UpdatePlayer(ecs *ecs.ECS) {
     ebiten.IsGamepadButtonPressed(1, 0) || 
     (grounded && player.JumpBuffer > 0) {
 
-    // set jump buffer
-    player.JumpBuffer = 6
-
-		// .......................................................................
 		// fall through platform if keydown while jumping and on ground object is a platform.
 		// This is done by adding the OnGround object to player's IgnorePlatform field.
 		if (ebiten.IsKeyPressed(ebiten.KeyDown) ||
@@ -115,7 +114,9 @@ func UpdatePlayer(ecs *ecs.ECS) {
 			player.IgnorePlatform = player.OnGround
 
 		} else {
-			// .....................................................................
+      // set jump buffer
+      player.JumpBuffer = 6
+
 			// perform jump
 			if player.OnGround != nil {
 				player.SpeedY = -jumpSpd
