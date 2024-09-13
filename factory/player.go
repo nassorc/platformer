@@ -4,6 +4,7 @@ import (
 	"platformer/archetypes"
 	"platformer/assets"
 	"platformer/components"
+	"platformer/config"
 	dresolv "platformer/resolv"
 
 	"github.com/nassorc/go-codebase/lib/math"
@@ -27,7 +28,7 @@ func CreatePlayer(ecs *ecs.ECS) *donburi.Entry {
 
   // add object
   // width and height probably match the tile width and height of the animation
-	obj := resolv.NewObject(32, 128, 8, 16)
+	obj := resolv.NewObject(config.C.SpawnX, config.C.SpawnY, 8, 16)
 	dresolv.SetObject(player, obj)
 	components.Player.SetValue(player, components.PlayerData{
 		FacingRight: true,

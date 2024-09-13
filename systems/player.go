@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"platformer/components"
+	"platformer/config"
 	"platformer/factory"
 	dresolv "platformer/resolv"
 	"platformer/tags"
@@ -36,9 +37,14 @@ func UpdatePlayer(ecs *ecs.ECS) {
     gravity *= 12
   }
 
+  if playerObject.Y > float64(config.C.Height) {
+    playerObject.X = config.C.SpawnX
+    playerObject.Y = config.C.SpawnY
+  }
+
   player.JumpBuffer -= 1
 
-  // clamp x speed
+  // clamp y speed
 	if player.SpeedY > maxYSpeed {
 		player.SpeedY = maxYSpeed
 	} else if player.SpeedY < -maxYSpeed {
@@ -90,7 +96,10 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.SpeedX = -maxXSpeed
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyX) || ebiten.IsGamepadButtonPressed(0, 0) || ebiten.IsGamepadButtonPressed(1, 0) || (grounded && player.JumpBuffer > 0) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyX) || 
+    ebiten.IsGamepadButtonPressed(0, 0) || 
+    ebiten.IsGamepadButtonPressed(1, 0) || 
+    (grounded && player.JumpBuffer > 0) {
 
     // set jump buffer
     player.JumpBuffer = 6
@@ -106,7 +115,6 @@ func UpdatePlayer(ecs *ecs.ECS) {
 			player.IgnorePlatform = player.OnGround
 
 		} else {
-
 			// .....................................................................
 			// perform jump
 			if player.OnGround != nil {
@@ -203,7 +211,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		// 4) If the proposed slide is less than 8 pixels in horizontal distance. (This is a relatively arbitrary number that just so happens to be half the
 		// width of a cell. This is to ensure the player doesn't slide too far horizontally.)
 
-		if dy < 0 && check.Cells[0].ContainsTags("solid") && slide != nil && math.Abs(slide.X()) <= 8 {
+		if dy < 0 && check.Cells[0].ContainsTags("solid") && slide != nil && math.Abs(slide.X()) <= 4 {
 
 			// If we are able to slide here, we do so. No contact was made, and vertical speed (dy) is maintained upwards.
 			playerObject.X += slide.X()
