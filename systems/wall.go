@@ -3,7 +3,6 @@ package systems
 import (
 	"image/color"
 
-	"platformer/assets"
 	dresolv "platformer/resolv"
 	"platformer/tags"
 
@@ -21,7 +20,3 @@ func DrawWall(ecs *ecs.ECS, screen *ebiten.Image) {
 	})
 }
 
-func DrawLevel(ecs *ecs.ECS, screen *ebiten.Image) {
-  opt := &ebiten.DrawImageOptions{}
-  screen.DrawImage(assets.PlatformLevel.Background, opt)
-}
