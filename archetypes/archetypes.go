@@ -14,24 +14,29 @@ var (
 		tags.Platform,
 		components.Object,
 	)
+
 	FloatingPlatform = newArchetype(
 		tags.FloatingPlatform,
 		components.Object,
 		components.Tween,
 	)
+
 	Player = newArchetype(
 		tags.Player,
 		components.Player,
 		components.Object,
     components.Animation,
 	)
+
 	Ramp = newArchetype(
 		tags.Ramp,
 		components.Object,
 	)
+
 	Space = newArchetype(
 		components.Space,
 	)
+
 	Wall = newArchetype(
 		tags.Wall,
 		components.Object,

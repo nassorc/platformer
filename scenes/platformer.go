@@ -69,16 +69,13 @@ func (ps *PlatformerScene) configure() {
 	lecs.AddSystem(systems.UpdateSettings)
 
 	lecs.AddRenderer(layers.Default, systems.DrawLevel)
-	// lecs.AddRenderer(layers.Default, systems.DrawWall)
 	lecs.AddRenderer(layers.Default, systems.DrawPlatform)
 	lecs.AddRenderer(layers.Default, systems.DrawRamp)
 	lecs.AddRenderer(layers.Default, systems.DrawFloatingPlatform)
-	// lecs.AddRenderer(layers.Default, systems.DrawPlayer)
 	lecs.AddRenderer(layers.Default, systems.DrawAnimation)
 	lecs.AddRenderer(layers.Default, systems.DrawDebug)
 	lecs.AddRenderer(layers.Default, systems.DrawHelp)
 	lecs.AddRenderer(layers.Top, debugCamera.Draw)
-	// lecs.AddRenderer(layers.Top, systems.DrawTiles)
   lecs.AddRenderer(layers.Bottom, func (ecs *ecs.ECS, screen *ebiten.Image) {
     vector.StrokeRect(screen, 0, 0, 32, 32, 2, color.White, false)
   })
@@ -93,22 +90,13 @@ func (ps *PlatformerScene) configure() {
 	// detection.
 	space := factory.CreateSpace(ps.ecs)
 
+  // Construct the solid level geometry. Note that the simple approach of checking cells in a Space for collision works simply when the geometry is aligned with the cells,
+  // as it all is in this platformer example.
   for _, obj := range assets.PlatformLevel.Objects {
 		dresolv.Add(space, factory.CreateWall(ps.ecs, resolv.NewObject(obj.X, obj.Y, obj.Width, obj.Height, "solid")))
   }
 
 	dresolv.Add(space,
-		// Construct the solid level geometry. Note that the simple approach of checking cells in a Space for collision works simply when the geometry is aligned with the cells,
-		// as it all is in this platformer example.
-		// factory.CreateWall(ps.ecs, resolv.NewObject(0, 0, 16, gh, "solid")),
-		// factory.CreateWall(ps.ecs, resolv.NewObject(gw-16, 0, 16, gh, "solid")),
-		// factory.CreateWall(ps.ecs, resolv.NewObject(0, 0, gw, 16, "solid")),
-		// factory.CreateWall(ps.ecs, resolv.NewObject(0, gh-24, gw, 32, "solid")),
-		// factory.CreateWall(ps.ecs, resolv.NewObject(160, gh-56, 160, 32, "solid")),
-		// factory.CreateWall(ps.ecs, resolv.NewObject(320, 64, 32, 160, "solid")),
-		// factory.CreateWall(ps.ecs, resolv.NewObject(64, 128, 16, 160, "solid")),
-		// factory.CreateWall(ps.ecs, resolv.NewObject(gw-128, 64, 128, 16, "solid")),
-		// factory.CreateWall(ps.ecs, resolv.NewObject(gw-128, gh-88, 128, 16, "solid")),
 		// Create the Player. NewPlayer adds it to the world's Space.
 		factory.CreatePlayer(ps.ecs),
 		// Non-moving floating Platforms.
@@ -118,8 +106,7 @@ func (ps *PlatformerScene) configure() {
 		factory.CreatePlatform(ps.ecs, resolv.NewObject(352, 64+192, 48, 8, "platform")),
 		// Create the floating platform.
 		factory.CreateFloatingPlatform(ps.ecs, resolv.NewObject(128, gh-32, 128, 8, "platform")),
-    factory.CreateFloatingPlatform(ps.ecs, resolv.NewObject(410, 210, 16, 16, "platform")),
-    // factor.CreateFloatingPlatform(ps.ecs, resolv)
+    factory.CreateFloatingPlatform(ps.ecs, resolv.NewObject(420, 210, 16, 8, "platform")),
 		// A ramp, which is unique as it has a non-rectangular shape. For this, we will specify a different shape for collision testing.
 		factory.CreateRamp(ps.ecs, resolv.NewObject(320, gh-56, 64, 32, "ramp")),
 	)

@@ -32,7 +32,7 @@ func NewGame() *Game {
 
 	g := &Game{
 		bounds: image.Rectangle{},
-		scene: scenes.NewPlatformScene(),
+		scene:  scenes.NewPlatformScene(),
 	}
 
 	return g
@@ -46,8 +46,8 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Clear()
 	g.scene.Draw(screen)
-  // opt := &ebiten.DrawImageOptions{}
-  // screen.DrawImage(assets.PlatformLevel.Background, opt)
+	// opt := &ebiten.DrawImageOptions{}
+	// screen.DrawImage(assets.PlatformLevel.Background, opt)
 }
 
 func (g *Game) Layout(width, height int) (int, int) {
