@@ -1,7 +1,6 @@
 package systems
 
 import (
-	"image"
 	"platformer/components"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -40,52 +39,28 @@ func (sys *Animation) UpdateAnimation(ecs *ecs.ECS) {
 func DrawAnimation(ecs *ecs.ECS, screen *ebiten.Image) {
   query := donburi.NewQuery(filter.Contains(components.Object, components.Animation))
   query.Each(ecs.World, func(e *donburi.Entry) {
-    // extract animation and position
+    // extract data
     anim := components.Animation.Get(e)
-    obj := components.Object.Get(e)
-
-		frame := anim.StateMap[anim.CurrentState].Sheet[anim.CurrentFrame]
-    texture := anim.StateMap[anim.CurrentState].Texture
+    sprite := anim.CurrentSprite() // sprite is a sub image of the texture based off the current frame
     offset := anim.Offset
-
-    // the Animation type should handle this
+    entityObj := components.Object.Get(e)
+    player := components.MustFindPlayer(ecs.World) // Will only work with the player entity
 		ops := &ebiten.DrawImageOptions{}
-		// ops.GeoM.Translate(float64(obj.X)-float64(anim.Data.TileWidth/2), float64(obj.Y)-float64(anim.Data.TileHeight/2))
 
-    // obj.
+    // Reflecting the sprite horizontally when the player is facing to the left will flip the image at
+    // origin which is the top left corner. This will offset the sprite by -(SpriteWidth) so we must 
+    // translate the sprite back to its original position.
 
-    // Will only work with the player entity
-    player := components.MustFindPlayer(ecs.World)
-    scaleX := 1
-
+    // Since we only have one moveable entity in the game world, we can directly use the player entry to 
+    // determine the direction it's facing.
     if !player.FacingRight {
-      scaleX = -1
+      ops.GeoM.Scale(-1, 1)
+      ops.GeoM.Translate(float64(anim.CurrentSprite().Bounds().Dx()), 0)
     }
 
+    // set the position of the sprite to be the object's position
+		ops.GeoM.Translate(float64(entityObj.X)+float64(offset.X), float64(entityObj.Y)+float64(offset.Y))
 
-    ops.GeoM.Scale(float64(scaleX), 1)
-
-    if scaleX < 0 {
-      ops.GeoM.Translate(float64(24), 0)
-    }
-
-		ops.GeoM.Translate(float64(obj.X)+float64(offset.X), float64(obj.Y)+float64(offset.Y))
-
-    tw := anim.StateMap[anim.CurrentState].TileWidth
-    th := anim.StateMap[anim.CurrentState].TileWidth
-		x := frame.Cell % (texture.Bounds().Dx() / tw)
-		y := frame.Cell / (texture.Bounds().Dx() / tw)
-
-		screen.DrawImage(
-      texture.SubImage(
-        image.Rect(
-          x*tw, 
-          y*th, 
-          x*tw+tw, 
-          y*th+th,
-        ),
-      ).(*ebiten.Image),
-      ops,
-    )
+		screen.DrawImage(sprite, ops)
   })
 }
