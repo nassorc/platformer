@@ -17,6 +17,19 @@ type AnimationData struct {
   StateMap map[string]*assets.Animation
 }
 
+func (anim *AnimationData) NextFrame(dt float32) {
+  ref := anim.StateMap[anim.CurrentState]
+  now := dt / 60 * 1000 // ms
+  lastUpdate := anim.LastUpdateTime
+  curFrame := anim.CurrentFrame
+  animDuration := ref.Sheet[curFrame].Duration
+
+  if now-lastUpdate >= float32(animDuration) {
+    anim.CurrentFrame = (anim.CurrentFrame+1) % ref.TotalFrames
+    anim.LastUpdateTime = now
+  }
+}
+
 func (anim *AnimationData) CurrentSprite() *ebiten.Image {
   frame := anim.StateMap[anim.CurrentState].Sheet[anim.CurrentFrame]
   texture := anim.StateMap[anim.CurrentState].Texture

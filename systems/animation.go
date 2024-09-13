@@ -22,16 +22,7 @@ func NewAnimation() Animation {
 func (sys *Animation) UpdateAnimation(ecs *ecs.ECS) {
   components.Animation.Each(ecs.World, func(e *donburi.Entry) {
     anim := components.Animation.Get(e)
-    ref := anim.StateMap[anim.CurrentState]
-		now := float32(sys.tick) / 60 * 1000
-    lastUpdate := anim.LastUpdateTime
-    curFrame := anim.CurrentFrame
-    animDuration := ref.Sheet[curFrame].Duration
-
-    if now-lastUpdate >= float32(animDuration) {
-      anim.CurrentFrame = (anim.CurrentFrame+1) % ref.TotalFrames
-      anim.LastUpdateTime = now
-    }
+    anim.NextFrame(float32(sys.tick))
   })
   sys.tick += 1
 }
