@@ -32,10 +32,12 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	jumpSpd := 8.0
 	gravity := 0.40
   player.JumpBuffer -= 1
+  player.CoyoteTimer -= 1
 
   // if wallSliding and falling
 	if player.WallSliding != nil && player.SpeedY > 1 {
 		player.SpeedY = 1.6 
+    player.Jumping = false
     animation.MustChangeState(factory.WallClimb)
 	}
 
@@ -91,6 +93,18 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.SpeedY = -maxYSpeed
 	}
 
+  // reset coyote timer if grounded
+  if grounded {
+    player.Jumping = false
+    player.CanCoyote = true
+  }
+
+  // if player is falling and coyote timer is not set, set coyote timer
+  if player.CanCoyote && !grounded && !player.Jumping && player.CoyoteTimer <= 0 {
+    player.CoyoteTimer = 6
+    player.CanCoyote = false
+  }
+
   // if jump button is presssed or a jump is buffered
 	if inpututil.IsKeyJustPressed(ebiten.KeyX) || 
     ebiten.IsGamepadButtonPressed(0, 0) || 
@@ -111,20 +125,21 @@ func UpdatePlayer(ecs *ecs.ECS) {
       player.JumpBuffer = 6
 
 			// perform jump
-			if grounded {
+			if grounded || player.CoyoteTimer >= 0 {
 				player.SpeedY = -jumpSpd
+        player.Jumping = true
 			} else if player.WallSliding != nil {
 				// perform wall jump
 				player.SpeedY = -(jumpSpd-1)
+        player.Jumping = true
 
 				if player.WallSliding.X > playerObject.X {
-					player.SpeedX = -6.5
+					player.SpeedX = -8.5
 				} else {
-					player.SpeedX = 6.5
+					player.SpeedX = 8.5
 				}
 
 				player.WallSliding = nil
-
 			}
 
       // change animation if jumping

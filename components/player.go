@@ -9,10 +9,13 @@ type PlayerData struct {
 	SpeedX         float64
 	SpeedY         float64
   JumpBuffer     int
+  CoyoteTimer    int
 	OnGround       *resolv.Object
 	WallSliding    *resolv.Object
 	IgnorePlatform *resolv.Object
 	FacingRight    bool
+  Jumping        bool
+  CanCoyote      bool
 }
 
 var Player = donburi.NewComponentType[PlayerData]()
