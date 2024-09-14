@@ -1,9 +1,9 @@
 package assets
 
 import (
+  "fmt"
 	"bytes"
 	"embed"
-	"fmt"
 	"image"
 	"os"
 
@@ -95,7 +95,7 @@ var (
     TileHeight: 24,
     TotalFrames: 1,
     Sheet: Sheet{
-      Frame{ 17, 1 },
+      Frame{ 12, 1000 },
     },
   }
 )
@@ -173,9 +173,6 @@ func MustLoadLevel() {
   if err != nil {
     fmt.Printf("error parsing map: %s", err.Error())
     os.Exit(2)
-  }
-  for _, obj := range gameMap.ObjectGroups[0].Objects {
-    fmt.Println(obj)
   }
 
   renderer, err := render.NewRenderer(gameMap)

@@ -23,7 +23,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	player := components.Player.Get(playerEntry)
 	playerObject := dresolv.GetObject(playerEntry)
   animation := components.Animation.Get(playerEntry)
-  grounded := playerObject.Check(0, 1, "solid", "platform", "ramp") != nil
+  grounded := player.OnGround != nil
 
 	friction := 0.5  
 	accel := 0.5 + friction
@@ -31,30 +31,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	maxYSpeed := 8.0
 	jumpSpd := 8.0
 	gravity := 0.40
-
   player.JumpBuffer -= 1
-
-  // control jump height
-  if inpututil.IsKeyJustReleased(ebiten.KeyX) && !grounded && player.SpeedY < -2 {
-    gravity *= 12
-  }
-
-  // player falls out of map, respawn 
-  if playerObject.Y > float64(config.C.Height) {
-    playerObject.X = config.C.SpawnX
-    playerObject.Y = config.C.SpawnY
-    player.SpeedY = 0
-    player.SpeedX = 0
-  }
-
-	player.SpeedY += gravity
-
-  // clamp y speed
-	if player.SpeedY > maxYSpeed {
-		player.SpeedY = maxYSpeed
-	} else if player.SpeedY < -maxYSpeed {
-		player.SpeedY = -maxYSpeed
-	}
 
   // if wallSliding and falling
 	if player.WallSliding != nil && player.SpeedY > 1 {
@@ -76,7 +53,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 
     if player.SpeedX != 0 {
       animation.MustChangeState(factory.Run)
-    } else {
+    } else if grounded {
       animation.MustChangeState(factory.Idle)
     }
 	}
@@ -99,6 +76,22 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.SpeedX = -maxXSpeed
 	}
 
+  // control jump height
+  if inpututil.IsKeyJustReleased(ebiten.KeyX) && !grounded && player.SpeedY < -2 {
+    gravity *= 12.5
+  }
+
+  // apply gravity
+	player.SpeedY += gravity
+
+  // clamp y speed
+	if player.SpeedY > maxYSpeed {
+		player.SpeedY = maxYSpeed
+	} else if player.SpeedY < -maxYSpeed {
+		player.SpeedY = -maxYSpeed
+	}
+
+  // if jump button is presssed or a jump is buffered
 	if inpututil.IsKeyJustPressed(ebiten.KeyX) || 
     ebiten.IsGamepadButtonPressed(0, 0) || 
     ebiten.IsGamepadButtonPressed(1, 0) || 
@@ -118,10 +111,10 @@ func UpdatePlayer(ecs *ecs.ECS) {
       player.JumpBuffer = 6
 
 			// perform jump
-			if player.OnGround != nil {
+			if grounded {
 				player.SpeedY = -jumpSpd
 			} else if player.WallSliding != nil {
-				// WALLJUMPING
+				// perform wall jump
 				player.SpeedY = -(jumpSpd-1)
 
 				if player.WallSliding.X > playerObject.X {
@@ -133,6 +126,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 				player.WallSliding = nil
 
 			}
+
       // change animation if jumping
       if player.SpeedY < 0 {
         animation.MustChangeState(factory.Jump)
@@ -322,6 +316,15 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	if c := playerObject.Check(wallNext, 0, "solid"); player.WallSliding != nil && c == nil {
 		player.WallSliding = nil
 	}
+
+  // if player falls off map, respawn
+  if playerObject.Y > float64(config.C.Height) {
+    playerObject.X = config.C.SpawnX
+    playerObject.Y = config.C.SpawnY
+    player.SpeedY = 0
+    player.SpeedX = 0
+  }
+
 }
 
 func DrawPlayer(ecs *ecs.ECS, screen *ebiten.Image) {
