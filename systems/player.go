@@ -22,47 +22,47 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	playerEntry, _ := components.Player.First(ecs.World)
 	player := components.Player.Get(playerEntry)
 	playerObject := dresolv.GetObject(playerEntry)
-  animation := components.Animation.Get(playerEntry)
-  grounded := player.OnGround != nil
+	animation := components.Animation.Get(playerEntry)
+	grounded := player.OnGround != nil
 
-	friction := 0.5  
+	friction := 0.5
 	accel := 0.5 + friction
 	maxXSpeed := 2.5
 	maxYSpeed := 8.0
 	jumpSpd := 8.0
 	gravity := 0.40
-  player.JumpBuffer -= 1
-  player.CoyoteTimer -= 1
+	player.JumpBuffer -= 1
+	player.CoyoteTimer -= 1
 
-  // if wallSliding and falling
+	// if wallSliding and falling
 	if player.WallSliding != nil && player.SpeedY > 1 {
-		player.SpeedY = 1.6 
-    player.Jumping = false
-    animation.MustChangeState(factory.WallClimb)
+		player.SpeedY = 1.6
+		player.Jumping = false
+		animation.MustChangeState(factory.WallClimb)
 	}
 
 	// Horizontal movement is only possible when not wallsliding.
 	if player.WallSliding == nil {
-		if ebiten.IsKeyPressed(ebiten.KeyRight) || ebiten.GamepadAxis(0, 0) > 0.1 {
+		if ebiten.IsKeyPressed(ebiten.KeyRight) || ebiten.GamepadAxisValue(0, 0) > 0.1 {
 			player.SpeedX += accel
 			player.FacingRight = true
 		}
 
-		if ebiten.IsKeyPressed(ebiten.KeyLeft) || ebiten.GamepadAxis(0, 0) < -0.1 {
+		if ebiten.IsKeyPressed(ebiten.KeyLeft) || ebiten.GamepadAxisValue(0, 0) < -0.1 {
 			player.SpeedX -= accel
 			player.FacingRight = false
 		}
 
-    if player.SpeedX != 0 {
-      animation.MustChangeState(factory.Run)
-    } else if grounded {
-      animation.MustChangeState(factory.Idle)
-    }
+		if player.SpeedX != 0 {
+			animation.MustChangeState(factory.Run)
+		} else if grounded {
+			animation.MustChangeState(factory.Idle)
+		}
 	}
 
 	// Apply friction and horizontal speed limiting.
-  // subtract friction until speed is less than friction 
-  // if speed is less than friction, set it to 0. Stopping movement
+	// subtract friction until speed is less than friction
+	// if speed is less than friction, set it to 0. Stopping movement
 	if player.SpeedX > friction {
 		player.SpeedX -= friction
 	} else if player.SpeedX < -friction {
@@ -71,67 +71,67 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.SpeedX = 0
 	}
 
-  // clamp x speed
+	// clamp x speed
 	if player.SpeedX > maxXSpeed {
 		player.SpeedX = maxXSpeed
 	} else if player.SpeedX < -maxXSpeed {
 		player.SpeedX = -maxXSpeed
 	}
 
-  // control jump height
-  if inpututil.IsKeyJustReleased(ebiten.KeyX) && !grounded && player.SpeedY < -2 {
-    gravity *= 12.5
-  }
+	// control jump height
+	if inpututil.IsKeyJustReleased(ebiten.KeyX) && !grounded && player.SpeedY < -2 {
+		gravity *= 12.5
+	}
 
-  // apply gravity
+	// apply gravity
 	player.SpeedY += gravity
 
-  // clamp y speed
+	// clamp y speed
 	if player.SpeedY > maxYSpeed {
 		player.SpeedY = maxYSpeed
 	} else if player.SpeedY < -maxYSpeed {
 		player.SpeedY = -maxYSpeed
 	}
 
-  // reset coyote timer if grounded
-  if grounded {
-    player.Jumping = false
-    player.CanCoyote = true
-  }
+	// reset coyote timer if grounded
+	if grounded {
+		player.Jumping = false
+		player.CanCoyote = true
+	}
 
-  // if player is falling and coyote timer is not set, set coyote timer
-  if player.CanCoyote && !grounded && !player.Jumping && player.CoyoteTimer <= 0 {
-    player.CoyoteTimer = 6
-    player.CanCoyote = false
-  }
+	// if player is falling and coyote timer is not set, set coyote timer
+	if player.CanCoyote && !grounded && !player.Jumping && player.CoyoteTimer <= 0 {
+		player.CoyoteTimer = 6
+		player.CanCoyote = false
+	}
 
-  // if jump button is presssed or a jump is buffered
-	if inpututil.IsKeyJustPressed(ebiten.KeyX) || 
-    ebiten.IsGamepadButtonPressed(0, 0) || 
-    ebiten.IsGamepadButtonPressed(1, 0) || 
-    (grounded && player.JumpBuffer > 0) {
+	// if jump button is presssed or a jump is buffered
+	if inpututil.IsKeyJustPressed(ebiten.KeyX) ||
+		ebiten.IsGamepadButtonPressed(0, 0) ||
+		ebiten.IsGamepadButtonPressed(1, 0) ||
+		(grounded && player.JumpBuffer > 0) {
 
 		// fall through platform if keydown while jumping and on ground object is a platform.
 		// This is done by adding the OnGround object to player's IgnorePlatform field.
 		if (ebiten.IsKeyPressed(ebiten.KeyDown) ||
-			ebiten.GamepadAxis(0, 1) > 0.1 ||
-			ebiten.GamepadAxis(1, 1) > 0.1) &&
+			ebiten.GamepadAxisValue(0, 1) > 0.1 ||
+			ebiten.GamepadAxisValue(1, 1) > 0.1) &&
 			player.OnGround != nil && player.OnGround.HasTags("platform") {
 
 			player.IgnorePlatform = player.OnGround
 
 		} else {
-      // set jump buffer
-      player.JumpBuffer = 6
+			// set jump buffer
+			player.JumpBuffer = 6
 
 			// perform jump
 			if grounded || player.CoyoteTimer >= 0 {
 				player.SpeedY = -jumpSpd
-        player.Jumping = true
+				player.Jumping = true
 			} else if player.WallSliding != nil {
 				// perform wall jump
-				player.SpeedY = -(jumpSpd-1)
-        player.Jumping = true
+				player.SpeedY = -(jumpSpd - 1)
+				player.Jumping = true
 
 				if player.WallSliding.X > playerObject.X {
 					player.SpeedX = -8.5
@@ -142,10 +142,10 @@ func UpdatePlayer(ecs *ecs.ECS) {
 				player.WallSliding = nil
 			}
 
-      // change animation if jumping
-      if player.SpeedY < 0 {
-        animation.MustChangeState(factory.Jump)
-      }
+			// change animation if jumping
+			if player.SpeedY < 0 {
+				animation.MustChangeState(factory.Jump)
+			}
 		}
 	}
 
@@ -332,13 +332,13 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.WallSliding = nil
 	}
 
-  // if player falls off map, respawn
-  if playerObject.Y > float64(config.C.Height) {
-    playerObject.X = config.C.SpawnX
-    playerObject.Y = config.C.SpawnY
-    player.SpeedY = 0
-    player.SpeedX = 0
-  }
+	// if player falls off map, respawn
+	if playerObject.Y > float64(config.C.Height) {
+		playerObject.X = config.C.SpawnX
+		playerObject.Y = config.C.SpawnY
+		player.SpeedY = 0
+		player.SpeedX = 0
+	}
 
 }
 

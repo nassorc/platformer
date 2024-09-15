@@ -25,7 +25,7 @@ var (
 		tags.Player,
 		components.Player,
 		components.Object,
-    components.Animation,
+		components.Animation,
 	)
 
 	Ramp = newArchetype(

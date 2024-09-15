@@ -5,13 +5,10 @@ import (
 	"image/color"
 	"platformer/assets"
 
-	// "platformer/fonts"
-
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi/ecs"
-	"golang.org/x/image/font"
 )
 
 func DrawHelp(ecs *ecs.ECS, screen *ebiten.Image) {
@@ -27,21 +24,23 @@ func DrawHelp(ecs *ecs.ECS, screen *ebiten.Image) {
 			"",
 			"F1: Toggle Debug View",
 			"F2: Show / Hide help text",
-			fmt.Sprintf("%d FPS (frames per second)", int(ebiten.CurrentFPS())),
-			fmt.Sprintf("%d TPS (ticks per second)", int(ebiten.CurrentTPS())),
+			fmt.Sprintf("%d FPS (frames per second)", int(ebiten.ActualFPS())),
+			fmt.Sprintf("%d TPS (ticks per second)", int(ebiten.ActualFPS())),
 		)
 	}
 }
 
 func drawText(screen *ebiten.Image, x, y int, textLines ...string) {
-	f := assets.Excel.Get()
 	rectHeight := 10
-	for _, txt := range textLines {
-		w := float64(font.MeasureString(f, txt).Round())
-		ebitenutil.DrawRect(screen, float64(x), float64(y-8), w, float64(rectHeight), color.RGBA{0, 0, 0, 192})
+	face := assets.Excel.GetFontFace(10)
 
-		text.Draw(screen, txt, f, x+1, y+1, color.RGBA{0, 0, 150, 255})
-		text.Draw(screen, txt, f, x, y, color.RGBA{100, 150, 255, 255})
+	for _, txt := range textLines {
+		w, _ := text.Measure(txt, face, 1)
+		vector.DrawFilledRect(screen, float32(x), float32(y-8), float32(w), float32(rectHeight), color.RGBA{0, 0, 0, 192}, false)
+
+		opt := &text.DrawOptions{}
+		opt.GeoM.Translate(float64(x+1), float64(y+1))
+		text.Draw(screen, txt, face, opt)
 		y += rectHeight
 	}
 }

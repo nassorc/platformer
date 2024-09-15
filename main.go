@@ -1,19 +1,14 @@
 package main
 
 import (
-	_ "embed"
-
 	"image"
 	"log"
-	"math/rand"
-	"time"
 
 	"platformer/assets"
 	"platformer/config"
 
 	"github.com/hajimehoshi/ebiten/v2"
 
-	// "platformer/fonts"
 	"platformer/scenes"
 )
 
@@ -46,8 +41,6 @@ func (g *Game) Update() error {
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Clear()
 	g.scene.Draw(screen)
-	// opt := &ebiten.DrawImageOptions{}
-	// screen.DrawImage(assets.PlatformLevel.Background, opt)
 }
 
 func (g *Game) Layout(width, height int) (int, int) {
@@ -57,8 +50,6 @@ func (g *Game) Layout(width, height int) (int, int) {
 
 func main() {
 	ebiten.SetWindowSize(config.C.Width, config.C.Height)
-	ebiten.SetWindowResizable(false)
-	rand.Seed(time.Now().UTC().UnixNano())
 	if err := ebiten.RunGame(NewGame()); err != nil {
 		log.Fatal(err)
 	}

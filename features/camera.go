@@ -15,93 +15,93 @@ import (
 )
 
 type Camera struct {
-  Zoom float64
-  View *ebiten.Image
-  Viewport dmath.AABB
-  Position dmath.Vec2
+	Zoom     float64
+	View     *ebiten.Image
+	Viewport dmath.AABB
+	Position dmath.Vec2
 }
 
 func (c Camera) Draw(world *ebiten.Image, screen *ebiten.Image) {
-  c.View.Clear()
+	c.View.Clear()
 
 	cameraOps := &ebiten.DrawImageOptions{}
-  // move camera in game world
+	// move camera in game world
 	cameraOps.GeoM.Translate(-float64(c.Position.X), -float64(c.Position.Y))
 	cameraOps.GeoM.Scale(c.Zoom, c.Zoom)
 
 	viewportOps := &ebiten.DrawImageOptions{}
-  viewportOps.GeoM.Translate(float64(c.Viewport.Min.X), float64(c.Viewport.Min.Y))
+	viewportOps.GeoM.Translate(float64(c.Viewport.Min.X), float64(c.Viewport.Min.Y))
 
-  // use camera's view to draw the world
-  c.View.DrawImage(world, cameraOps)
-  // draw camera on screen
+	// use camera's view to draw the world
+	c.View.DrawImage(world, cameraOps)
+	// draw camera on screen
 	screen.DrawImage(c.View, viewportOps)
 }
 
 type CameraFollowPlayer struct {
-  camera *Camera
-  // Different from camera.Zoom
-  // used to implement smooth zooming
-  Zoom float64
-  query *donburi.Query
+	camera *Camera
+	// Different from camera.Zoom
+	// used to implement smooth zooming
+	Zoom  float64
+	query *donburi.Query
 }
 
 func NewCameraFollowPlayer(camera *Camera) CameraFollowPlayer {
-  query := donburi.NewQuery(filter.Contains(components.Player))
+	query := donburi.NewQuery(filter.Contains(components.Player))
 
-  return CameraFollowPlayer{ camera, camera.Zoom, query }
+	return CameraFollowPlayer{camera, camera.Zoom, query}
 }
 
 func Lerp(x, y, val float64) float64 {
-  return (y-x) * val + x
+	return (y-x)*val + x
 }
 
 func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
-  entry, _ := c.query.First(ecs.World)
-  player := components.Player.Get(entry)
-  obj := components.Object.Get(entry)
+	entry, _ := c.query.First(ecs.World)
+	player := components.Player.Get(entry)
+	obj := components.Object.Get(entry)
 
-  min, max := obj.Shape.Bounds()
-  ohw := float32(max.X() - min.X()) / 2
-  ohh := float32(max.Y() - min.Y()) / 2
+	min, max := obj.Shape.Bounds()
+	ohw := float32(max.X()-min.X()) / 2
+	ohh := float32(max.Y()-min.Y()) / 2
 
-  // center camera at target's x and y
-  x := float32(obj.X)
-  y := float32(obj.Y)
+	// center camera at target's x and y
+	x := float32(obj.X)
+	y := float32(obj.Y)
 
-  // get viewport width and height, then normalize it by the zoom factor
-  sw := c.camera.Viewport.Max.X / float32(c.camera.Zoom)
+	// get viewport width and height, then normalize it by the zoom factor
+	sw := c.camera.Viewport.Max.X / float32(c.camera.Zoom)
 	sh := c.camera.Viewport.Max.Y / float32(c.camera.Zoom)
 
-  // subtract half width and height to get the camera position centered at the target
-	x -= sw / 2 - ohw
-	y -= sh / 2 - ohh
+	// subtract half width and height to get the camera position centered at the target
+	x -= sw/2 - ohw
+	y -= sh/2 - ohh
 
-  trapOffset := float32(16)
+	trapOffset := float32(16)
 
-  // camera trap
-  if !player.FacingRight {
-    trapOffset *= -1
-  }
+	// camera trap
+	if !player.FacingRight {
+		trapOffset *= -1
+	}
 
-  lerpX := 0.08 // [0.0, 1.0]
-  lerpY := 0.08 // [0.0, 1.0]
-  trapX := float32(x + trapOffset)
-  cameraX := float32(Lerp(float64(c.camera.Position.X), float64(trapX), lerpX))
-  cameraY := float32(Lerp(float64(c.camera.Position.Y), float64(y), lerpY))
+	lerpX := 0.08 // [0.0, 1.0]
+	lerpY := 0.08 // [0.0, 1.0]
+	trapX := float32(x + trapOffset)
+	cameraX := float32(Lerp(float64(c.camera.Position.X), float64(trapX), lerpX))
+	cameraY := float32(Lerp(float64(c.camera.Position.Y), float64(y), lerpY))
 
-  if !player.FacingRight && x < cameraX {
-    cameraX = float32(Lerp(float64(cameraX), float64(x), lerpX))
-  }
+	if !player.FacingRight && x < cameraX {
+		cameraX = float32(Lerp(float64(cameraX), float64(x), lerpX))
+	}
 
-  if player.FacingRight && x > cameraX {
-    cameraX = float32(Lerp(float64(cameraX), float64(x), lerpX))
-  }
+	if player.FacingRight && x > cameraX {
+		cameraX = float32(Lerp(float64(cameraX), float64(x), lerpX))
+	}
 
-  c.camera.Position.X = cameraX
-  c.camera.Position.Y = cameraY
+	c.camera.Position.X = cameraX
+	c.camera.Position.Y = cameraY
 
-  // bound camera
+	// bound camera
 	if c.camera.Position.X < 0 {
 		c.camera.Position.X = 0
 	}
@@ -130,18 +130,18 @@ func (c *CameraFollowPlayer) Update(ecs *ecs.ECS) {
 }
 
 type DebugCamera struct {
-  camera *Camera
+	camera *Camera
 }
 
 func NewDebugCamera(camera *Camera) DebugCamera {
-  return DebugCamera{ camera }
+	return DebugCamera{camera}
 }
 
 func (c *DebugCamera) Draw(ecs *ecs.ECS, screen *ebiten.Image) {
-  settings := components.MustFindSettings(ecs.World)
-  if settings.Debug {
-    center := c.camera.Viewport.Center()
-    drawColor := color.RGBA{20, 255, 20, 255}
-    vector.DrawFilledCircle(c.camera.View, center.X, center.Y, 4, drawColor, false)
-  }
+	settings := components.MustFindSettings(ecs.World)
+	if settings.Debug {
+		center := c.camera.Viewport.Center()
+		drawColor := color.RGBA{20, 255, 20, 255}
+		vector.DrawFilledCircle(c.camera.View, center.X, center.Y, 4, drawColor, false)
+	}
 }

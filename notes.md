@@ -1,5 +1,24 @@
-# Current tasks
+# Current tasks
 ---
+
+[] Bugs:
+    [x] Jumping off of non solid platforms and Falling through platforms while 
+       while continually holding the jump button triggers a jump.
+       - expected behavior is to land on the platform and not perform a jump.
+       - Jump buffer is being set from the initial jump instead from
+         subsequent presses during the jump. 
+       - Happens when jumping from non solid platforms.
+    [x] fix jump animation not working
+
+[] Add coyote time
+    [] add can jump variable
+    [] Bug: jumping sets coyote timer
+
+    if not grounded and not jumping, set coyote timer
+    if coyote timer greater than 0, falling animation
+    if coyote timer greater than 0 and jump is pressed, perform jump
+    each loop, decrement coyote timer
+
 [x] Add tilemap
 
 [x] Improve player movement

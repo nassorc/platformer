@@ -8,6 +8,6 @@ import (
 )
 
 func DrawLevel(ecs *ecs.ECS, screen *ebiten.Image) {
-  opt := &ebiten.DrawImageOptions{}
-  screen.DrawImage(assets.PlatformLevel.Background, opt)
+	opt := &ebiten.DrawImageOptions{}
+	screen.DrawImage(assets.PlatformLevel.Background, opt)
 }

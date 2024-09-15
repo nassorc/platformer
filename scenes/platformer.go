@@ -21,23 +21,23 @@ import (
 )
 
 type PlatformerScene struct {
-	ecs  *ecs.ECS
-	once sync.Once
-  camera features.Camera
-  worldView *ebiten.Image
+	ecs       *ecs.ECS
+	once      sync.Once
+	camera    features.Camera
+	worldView *ebiten.Image
 }
 
 func NewPlatformScene() *PlatformerScene {
-  return &PlatformerScene{
-    camera: features.Camera{
-      Zoom: 1,
-      View: ebiten.NewImage(config.C.Width, config.C.Height),
-      Viewport: math.AABB{
-        Min: math.Vec2{X: 0, Y: 0},
-        Max: math.Vec2{X: float32(config.C.Width), Y: float32(config.C.Height)},
-      },
-    },
-  }
+	return &PlatformerScene{
+		camera: features.Camera{
+			Zoom: 1,
+			View: ebiten.NewImage(config.C.Width, config.C.Height),
+			Viewport: math.AABB{
+				Min: math.Vec2{X: 0, Y: 0},
+				Max: math.Vec2{X: float32(config.C.Width), Y: float32(config.C.Height)},
+			},
+		},
+	}
 }
 
 func (ps *PlatformerScene) Update() {
@@ -47,19 +47,19 @@ func (ps *PlatformerScene) Update() {
 
 func (ps *PlatformerScene) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{20, 20, 40, 255})
-  ps.worldView.Clear()
+	ps.worldView.Clear()
 	ps.ecs.Draw(ps.worldView)
-  ps.camera.Draw(ps.worldView, screen)
+	ps.camera.Draw(ps.worldView, screen)
 }
 
 func (ps *PlatformerScene) configure() {
-  // camera view
-  ps.worldView = ebiten.NewImage(config.C.Width, config.C.Height)
+	// camera view
+	ps.worldView = ebiten.NewImage(config.C.Width, config.C.Height)
 
 	lecs := ecs.NewECS(donburi.NewWorld())
-  animation := systems.NewAnimation()
-  cameraFollowPlayer := features.NewCameraFollowPlayer(&ps.camera)
-  debugCamera := features.NewDebugCamera(&ps.camera)
+	animation := systems.NewAnimation()
+	cameraFollowPlayer := features.NewCameraFollowPlayer(&ps.camera)
+	debugCamera := features.NewDebugCamera(&ps.camera)
 
 	lecs.AddSystem(systems.UpdateFloatingPlatform)
 	lecs.AddSystem(systems.UpdatePlayer)
@@ -76,10 +76,9 @@ func (ps *PlatformerScene) configure() {
 	lecs.AddRenderer(layers.Default, systems.DrawDebug)
 	lecs.AddRenderer(layers.Default, systems.DrawHelp)
 	lecs.AddRenderer(layers.Top, debugCamera.Draw)
-  lecs.AddRenderer(layers.Bottom, func (ecs *ecs.ECS, screen *ebiten.Image) {
-    vector.StrokeRect(screen, 0, 0, 32, 32, 2, color.White, false)
-  })
-
+	lecs.AddRenderer(layers.Bottom, func(ecs *ecs.ECS, screen *ebiten.Image) {
+		vector.StrokeRect(screen, 0, 0, 32, 32, 2, color.White, false)
+	})
 
 	ps.ecs = lecs
 
@@ -90,11 +89,11 @@ func (ps *PlatformerScene) configure() {
 	// detection.
 	space := factory.CreateSpace(ps.ecs)
 
-  // Construct the solid level geometry. Note that the simple approach of checking cells in a Space for collision works simply when the geometry is aligned with the cells,
-  // as it all is in this platformer example.
-  for _, obj := range assets.PlatformLevel.Objects {
+	// Construct the solid level geometry. Note that the simple approach of checking cells in a Space for collision works simply when the geometry is aligned with the cells,
+	// as it all is in this platformer example.
+	for _, obj := range assets.PlatformLevel.Objects {
 		dresolv.Add(space, factory.CreateWall(ps.ecs, resolv.NewObject(obj.X, obj.Y, obj.Width, obj.Height, "solid")))
-  }
+	}
 
 	dresolv.Add(space,
 		// Create the Player. NewPlayer adds it to the world's Space.
@@ -106,7 +105,7 @@ func (ps *PlatformerScene) configure() {
 		factory.CreatePlatform(ps.ecs, resolv.NewObject(352, 64+192, 48, 8, "platform")),
 		// Create the floating platform.
 		factory.CreateFloatingPlatform(ps.ecs, resolv.NewObject(128, gh-32, 128, 8, "platform")),
-    factory.CreateFloatingPlatform(ps.ecs, resolv.NewObject(420, 210, 16, 8, "platform")),
+		factory.CreateFloatingPlatform(ps.ecs, resolv.NewObject(420, 210, 16, 8, "platform")),
 		// A ramp, which is unique as it has a non-rectangular shape. For this, we will specify a different shape for collision testing.
 		factory.CreateRamp(ps.ecs, resolv.NewObject(320, gh-56, 64, 32, "ramp")),
 	)

@@ -6,11 +6,12 @@ import (
 	"platformer/components"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/yohamta/donburi/ecs"
 )
 
 func DrawDebug(ecs *ecs.ECS, screen *ebiten.Image) {
+	const strokeWidth = 1
 	settings := GetOrCreateSettings(ecs)
 	if !settings.Debug {
 		return
@@ -38,13 +39,13 @@ func DrawDebug(ecs *ecs.ECS, screen *ebiten.Image) {
 				drawColor = color.RGBA{255, 255, 0, 255}
 			}
 
-			ebitenutil.DrawLine(screen, cx, cy, cx+cw, cy, drawColor)
+			vector.StrokeLine(screen, float32(cx), float32(cy), float32(cx+cw), float32(cy), strokeWidth, drawColor, false)
 
-			ebitenutil.DrawLine(screen, cx+cw, cy, cx+cw, cy+ch, drawColor)
+			vector.StrokeLine(screen, float32(cx+cw), float32(cy), float32(cx+cw), float32(cy+ch), strokeWidth, drawColor, false)
 
-			ebitenutil.DrawLine(screen, cx+cw, cy+ch, cx, cy+ch, drawColor)
+			vector.StrokeLine(screen, float32(cx+cw), float32(cy+ch), float32(cx), float32(cy+ch), strokeWidth, drawColor, false)
 
-			ebitenutil.DrawLine(screen, cx, cy+ch, cx, cy, drawColor)
+			vector.StrokeLine(screen, float32(cx), float32(cy+ch), float32(cx), float32(cy), strokeWidth, drawColor, false)
 		}
 
 	}

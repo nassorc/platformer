@@ -3,13 +3,14 @@ package systems
 import (
 	"image/color"
 
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/yohamta/donburi"
-	"github.com/yohamta/donburi/ecs"
 	"platformer/components"
 	dresolv "platformer/resolv"
 	"platformer/tags"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
+	"github.com/yohamta/donburi"
+	"github.com/yohamta/donburi/ecs"
 )
 
 func UpdateFloatingPlatform(ecs *ecs.ECS) {
@@ -31,7 +32,7 @@ func DrawPlatform(ecs *ecs.ECS, screen *ebiten.Image) {
 	tags.Platform.Each(ecs.World, func(e *donburi.Entry) {
 		o := dresolv.GetObject(e)
 		drawColor := color.RGBA{180, 100, 0, 255}
-		ebitenutil.DrawRect(screen, o.X, o.Y, o.W, o.H, drawColor)
+		vector.DrawFilledRect(screen, float32(o.X), float32(o.Y), float32(o.W), float32(o.H), drawColor, false)
 	})
 }
 
@@ -39,6 +40,6 @@ func DrawFloatingPlatform(ecs *ecs.ECS, screen *ebiten.Image) {
 	tags.FloatingPlatform.Each(ecs.World, func(e *donburi.Entry) {
 		o := dresolv.GetObject(e)
 		drawColor := color.RGBA{180, 100, 0, 255}
-		ebitenutil.DrawRect(screen, o.X, o.Y, o.W, o.H, drawColor)
+		vector.DrawFilledRect(screen, float32(o.X), float32(o.Y), float32(o.W), float32(o.H), drawColor, false)
 	})
 }
